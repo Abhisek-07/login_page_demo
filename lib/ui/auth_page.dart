@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:login_page_demo/state/auth_bloc.dart';
+import 'package:login_page_demo/ui/home_screen.dart';
 
-class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
-
-  @override
-  AuthScreenState createState() => AuthScreenState();
-}
-
-class AuthScreenState extends State<AuthScreen> {
+class AuthScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -18,133 +12,55 @@ class AuthScreenState extends State<AuthScreen> {
   bool isSignUp = false;
 
   @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _userNameController.dispose();
-    super.dispose();
-  }
-
-  void _toggleFormType() {
-    setState(() {
-      isSignUp = !isSignUp;
-      _formKey.currentState!.reset();
-      _emailController.clear();
-      _passwordController.clear();
-      _userNameController.clear();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: MediaQuery.of(context).viewInsets +
-              const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthSuccess) {
+          // Navigate to home page on successful login/signup
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => HomeScreen(user: state.user)),
+          );
+        } else if (state is AuthFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      child: Scaffold(
+        body: Form(
+          key: _formKey,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
+              // Add form fields for email, password, and user name (for signup)
+              // Add a button for login/signup
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     if (isSignUp) {
-                      BlocProvider.of<AuthBloc>(context).add(SignUpEvent(
-                        _userNameController.text,
-                        _emailController.text,
-                        _passwordController.text,
-                      ));
+                      // Trigger SignUp Event
+                      context.read<AuthBloc>().add(
+                            SignUpEvent(
+                              _userNameController.text,
+                              _emailController.text,
+                              _passwordController.text,
+                            ),
+                          );
                     } else {
-                      BlocProvider.of<AuthBloc>(context).add(LoginEvent(
-                        _emailController.text,
-                        _passwordController.text,
-                      ));
+                      // Trigger Login Event
+                      context.read<AuthBloc>().add(
+                            LoginEvent(
+                              _emailController.text,
+                              _passwordController.text,
+                            ),
+                          );
                     }
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  elevation: 0,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 60),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  isSignUp ? 'Signup' : 'Login',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    isSignUp ? "Already have an account?" : "New here?",
-                    style: const TextStyle(color: Colors.black),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton(
-                    onPressed: _toggleFormType,
-                    style: TextButton.styleFrom(
-                      minimumSize: Size.zero,
-                      padding: EdgeInsets.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      isSignUp ? "Login" : "Signup",
-                      style: const TextStyle(color: Colors.blue),
-                    ),
-                  ),
-                ],
+                child: Text(isSignUp ? 'Sign Up' : 'Login'),
               ),
             ],
-          ),
-        ),
-      ),
-      body: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is AuthSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Welcome, ${state.user.userName}!')),
-            );
-            Navigator.pushReplacementNamed(context, '/home');
-          } else if (state is AuthFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (isSignUp)
-                  TextFormField(
-                    controller: _userNameController,
-                    decoration: const InputDecoration(labelText: 'Username'),
-                  ),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                ),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                ),
-              ],
-            ),
           ),
         ),
       ),

@@ -40,6 +40,17 @@ class _AuthScreenState extends State<AuthScreen> {
     return null;
   }
 
+  void _toggleFormType() {
+    setState(() {
+      isSignUp = !isSignUp;
+      // Reset the form and clear field values to avoid showing incorrect validation errors
+      _formKey.currentState?.reset();
+      _emailController.clear();
+      _passwordController.clear();
+      _userNameController.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
@@ -65,7 +76,9 @@ class _AuthScreenState extends State<AuthScreen> {
           child: Form(
             key: _formKey,
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const Spacer(),
                 if (isSignUp)
                   TextFormField(
                     controller: _userNameController,
@@ -84,6 +97,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   validator: _validatePassword,
                 ),
                 const SizedBox(height: 20),
+                const Spacer(),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
@@ -109,14 +123,15 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 TextButton(
                   onPressed: () {
-                    setState(() {
-                      isSignUp = !isSignUp;
-                    });
+                    _toggleFormType();
                   },
                   child: Text(isSignUp
                       ? 'Already have an account? Login'
                       : 'New user? Sign Up'),
                 ),
+                const SizedBox(
+                  height: 24,
+                )
               ],
             ),
           ),

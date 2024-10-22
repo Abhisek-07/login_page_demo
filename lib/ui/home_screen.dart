@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:login_page_demo/models/user.dart';
 import 'package:login_page_demo/state/auth_bloc.dart';
 import 'package:login_page_demo/ui/auth_page.dart';
+import 'package:login_page_demo/models/user.dart';
 
 class HomeScreen extends StatelessWidget {
   final User user;
@@ -11,26 +11,32 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Welcome, ${user.userName}"),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () {
-              // Trigger Logout Event
-              context.read<AuthBloc>().add(LogoutEvent());
-              // Navigate back to the login page
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => AuthScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Center(
-        child: Text("Welcome to the Home Page!"),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthInitial) {
+          // Navigate back to the login screen on logout
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const AuthScreen()),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Welcome, ${user.userName}'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: () {
+                // Trigger logout event
+                context.read<AuthBloc>().add(LogoutEvent());
+              },
+            ),
+          ],
+        ),
+        body: Center(
+          child: Text('Hello, ${user.userName}! This is the Home Screen.'),
+        ),
       ),
     );
   }

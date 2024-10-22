@@ -89,7 +89,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     // Handling LogoutEvent
     on<LogoutEvent>((event, emit) async {
-      // Logic for logging out (e.g., clearing Hive box session if needed)
       emit(AuthInitial());
     });
   }
